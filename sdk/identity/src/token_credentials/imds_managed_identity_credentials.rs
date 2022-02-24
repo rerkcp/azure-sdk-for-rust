@@ -20,6 +20,7 @@ const MSI_API_VERSION: &str = "2019-08-01";
 /// Built up from docs at [https://docs.microsoft.com/azure/app-service/overview-managed-identity#using-the-rest-protocol](https://docs.microsoft.com/azure/app-service/overview-managed-identity#using-the-rest-protocol)
 pub struct ImdsManagedIdentityCredential;
 
+#[allow(missing_docs)]
 #[non_exhaustive]
 #[derive(Debug, thiserror::Error)]
 pub enum ManagedIdentityCredentialError {
@@ -90,11 +91,11 @@ impl azure_core::auth::TokenCredential for ImdsManagedIdentityCredential {
     ) -> Result<azure_core::auth::TokenResponse, azure_core::Error> {
         TokenCredential::get_token(self, resource)
             .await
-            .map_err(|error| azure_core::Error::GetTokenError(Box::new(error)))
+            .map_err(|error| azure_core::Error::GetToken(Box::new(error)))
     }
 }
 
-pub fn expires_on_string<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>
+fn expires_on_string<'de, D>(deserializer: D) -> Result<DateTime<Utc>, D::Error>
 where
     D: Deserializer<'de>,
 {

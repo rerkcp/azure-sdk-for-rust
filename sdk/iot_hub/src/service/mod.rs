@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use azure_core::HttpClient;
 use base64::{decode, encode_config};
-use hmac::{Hmac, Mac, NewMac};
+use hmac::{Hmac, Mac};
 use http::request::Builder as RequestBuilder;
 use http::{header, Method};
 use sha2::Sha256;
@@ -65,7 +65,7 @@ pub enum GenerateSasTokenError {
     #[error("Failed to decode the given private key: {0}")]
     DecodePrivateKeyError(base64::DecodeError),
     #[error("Failed to use the given private key for the hashing algorithm: {0}")]
-    HashingFailed(crypto_mac::InvalidKeyLength),
+    HashingFailed(hmac::digest::InvalidLength),
 }
 
 impl ServiceClient {
@@ -75,7 +75,7 @@ impl ServiceClient {
     /// ```
     /// use std::sync::Arc;
     /// use azure_core::HttpClient;
-    /// use iot_hub::service::ServiceClient;
+    /// use azure_iot_hub::service::ServiceClient;
     ///
     /// let http_client = azure_core::new_http_client();
     /// let iot_hub_name = "cool-iot-hub";
@@ -139,7 +139,7 @@ impl ServiceClient {
     /// ```
     /// use std::sync::Arc;
     /// use azure_core::HttpClient;
-    /// use iot_hub::service::ServiceClient;
+    /// use azure_iot_hub::service::ServiceClient;
     ///
     /// let http_client = azure_core::new_http_client();
     ///
@@ -184,7 +184,7 @@ impl ServiceClient {
     /// ```
     /// use std::sync::Arc;
     /// use azure_core::HttpClient;
-    /// use iot_hub::service::ServiceClient;
+    /// use azure_iot_hub::service::ServiceClient;
     ///
     /// let http_client = azure_core::new_http_client();
     /// let connection_string = "HostName=cool-iot-hub.azure-devices.net;SharedAccessKeyName=iot_hubowner;SharedAccessKey=YSB2ZXJ5IHNlY3VyZSBrZXkgaXMgaW1wb3J0YW50Cg==";
@@ -255,7 +255,7 @@ impl ServiceClient {
     /// ```
     /// use std::sync::Arc;
     /// use azure_core::HttpClient;
-    /// use iot_hub::service::ServiceClient;
+    /// use azure_iot_hub::service::ServiceClient;
     ///
     /// # let http_client = azure_core::new_http_client();
     /// # let connection_string = "HostName=cool-iot-hub.azure-devices.net;SharedAccessKeyName=iot_hubowner;SharedAccessKey=YSB2ZXJ5IHNlY3VyZSBrZXkgaXMgaW1wb3J0YW50Cg==";
@@ -288,7 +288,7 @@ impl ServiceClient {
     /// ```
     /// use std::sync::Arc;
     /// use azure_core::HttpClient;
-    /// use iot_hub::service::ServiceClient;
+    /// use azure_iot_hub::service::ServiceClient;
     ///
     /// # let http_client = azure_core::new_http_client();
     /// # let connection_string = "HostName=cool-iot-hub.azure-devices.net;SharedAccessKeyName=iot_hubowner;SharedAccessKey=YSB2ZXJ5IHNlY3VyZSBrZXkgaXMgaW1wb3J0YW50Cg==";
@@ -323,7 +323,7 @@ impl ServiceClient {
     /// ```
     /// use std::sync::Arc;
     /// use azure_core::HttpClient;
-    /// use iot_hub::service::ServiceClient;
+    /// use azure_iot_hub::service::ServiceClient;
     ///
     /// # let http_client = azure_core::new_http_client();
     /// # let connection_string = "HostName=cool-iot-hub.azure-devices.net;SharedAccessKeyName=iot_hubowner;SharedAccessKey=YSB2ZXJ5IHNlY3VyZSBrZXkgaXMgaW1wb3J0YW50Cg==";
@@ -352,7 +352,7 @@ impl ServiceClient {
     /// ```
     /// use std::sync::Arc;
     /// use azure_core::HttpClient;
-    /// use iot_hub::service::ServiceClient;
+    /// use azure_iot_hub::service::ServiceClient;
     ///
     /// # let http_client = azure_core::new_http_client();
     /// # let connection_string = "HostName=cool-iot-hub.azure-devices.net;SharedAccessKeyName=iot_hubowner;SharedAccessKey=YSB2ZXJ5IHNlY3VyZSBrZXkgaXMgaW1wb3J0YW50Cg==";
@@ -371,7 +371,7 @@ impl ServiceClient {
     /// ```
     /// use std::sync::Arc;
     /// use azure_core::HttpClient;
-    /// use iot_hub::service::ServiceClient;
+    /// use azure_iot_hub::service::ServiceClient;
     ///
     /// # let http_client = azure_core::new_http_client();
     /// # let connection_string = "HostName=cool-iot-hub.azure-devices.net;SharedAccessKeyName=iot_hubowner;SharedAccessKey=YSB2ZXJ5IHNlY3VyZSBrZXkgaXMgaW1wb3J0YW50Cg==";
@@ -403,7 +403,7 @@ impl ServiceClient {
     /// ```
     /// use std::sync::Arc;
     /// use azure_core::HttpClient;
-    /// use iot_hub::service::ServiceClient;
+    /// use azure_iot_hub::service::ServiceClient;
     ///
     /// # let http_client = azure_core::new_http_client();
     /// # let connection_string = "HostName=cool-iot-hub.azure-devices.net;SharedAccessKeyName=iot_hubowner;SharedAccessKey=YSB2ZXJ5IHNlY3VyZSBrZXkgaXMgaW1wb3J0YW50Cg==";
@@ -430,7 +430,7 @@ impl ServiceClient {
     /// ```
     /// use std::sync::Arc;
     /// use azure_core::HttpClient;
-    /// use iot_hub::service::ServiceClient;
+    /// use azure_iot_hub::service::ServiceClient;
     ///
     /// # let http_client = azure_core::new_http_client();
     /// # let connection_string = "HostName=cool-iot-hub.azure-devices.net;SharedAccessKeyName=iot_hubowner;SharedAccessKey=YSB2ZXJ5IHNlY3VyZSBrZXkgaXMgaW1wb3J0YW50Cg==";
@@ -455,7 +455,7 @@ impl ServiceClient {
     /// ```
     /// use std::sync::Arc;
     /// use azure_core::HttpClient;
-    /// use iot_hub::service::ServiceClient;
+    /// use azure_iot_hub::service::ServiceClient;
     ///
     /// # let http_client = azure_core::new_http_client();
     /// # let connection_string = "HostName=cool-iot-hub.azure-devices.net;SharedAccessKeyName=iot_hubowner;SharedAccessKey=YSB2ZXJ5IHNlY3VyZSBrZXkgaXMgaW1wb3J0YW50Cg==";
@@ -480,7 +480,7 @@ impl ServiceClient {
     /// ```
     /// use std::sync::Arc;
     /// use azure_core::HttpClient;
-    /// use iot_hub::service::ServiceClient;
+    /// use azure_iot_hub::service::ServiceClient;
     ///
     /// # let http_client = azure_core::new_http_client();
     /// # let connection_string = "HostName=cool-iot-hub.azure-devices.net;SharedAccessKeyName=iot_hubowner;SharedAccessKey=YSB2ZXJ5IHNlY3VyZSBrZXkgaXMgaW1wb3J0YW50Cg==";
@@ -502,8 +502,8 @@ impl ServiceClient {
     /// ```
     /// use std::sync::Arc;
     /// use azure_core::HttpClient;
-    /// use iot_hub::service::ServiceClient;
-    /// use iot_hub::service::resources::{Status, AuthenticationMechanism};
+    /// use azure_iot_hub::service::ServiceClient;
+    /// use azure_iot_hub::service::resources::{Status, AuthenticationMechanism};
     ///
     /// # let http_client = azure_core::new_http_client();
     /// # let connection_string = "HostName=cool-iot-hub.azure-devices.net;SharedAccessKeyName=iot_hubowner;SharedAccessKey=YSB2ZXJ5IHNlY3VyZSBrZXkgaXMgaW1wb3J0YW50Cg==";
@@ -520,8 +520,8 @@ impl ServiceClient {
     /// ```
     /// use std::sync::Arc;
     /// use azure_core::HttpClient;
-    /// use iot_hub::service::ServiceClient;
-    /// use iot_hub::service::resources::{Status, AuthenticationMechanism};
+    /// use azure_iot_hub::service::ServiceClient;
+    /// use azure_iot_hub::service::resources::{Status, AuthenticationMechanism};
     ///
     /// # let http_client = azure_core::new_http_client();
     /// # let connection_string = "HostName=cool-iot-hub.azure-devices.net;SharedAccessKeyName=iot_hubowner;SharedAccessKey=YSB2ZXJ5IHNlY3VyZSBrZXkgaXMgaW1wb3J0YW50Cg==";
@@ -544,7 +544,7 @@ impl ServiceClient {
     /// ```
     /// use std::sync::Arc;
     /// use azure_core::HttpClient;
-    /// use iot_hub::service::ServiceClient;
+    /// use azure_iot_hub::service::ServiceClient;
     ///
     /// # let http_client = azure_core::new_http_client();
     /// # let connection_string = "HostName=cool-iot-hub.azure-devices.net;SharedAccessKeyName=iot_hubowner;SharedAccessKey=YSB2ZXJ5IHNlY3VyZSBrZXkgaXMgaW1wb3J0YW50Cg==";
@@ -568,7 +568,7 @@ impl ServiceClient {
     /// ```
     /// use std::sync::Arc;
     /// use azure_core::HttpClient;
-    /// use iot_hub::service::ServiceClient;
+    /// use azure_iot_hub::service::ServiceClient;
     ///
     /// # let http_client = azure_core::new_http_client();
     /// # let connection_string = "HostName=cool-iot-hub.azure-devices.net;SharedAccessKeyName=iot_hubowner;SharedAccessKey=YSB2ZXJ5IHNlY3VyZSBrZXkgaXMgaW1wb3J0YW50Cg==";
@@ -592,8 +592,8 @@ impl ServiceClient {
     /// ```
     /// use std::sync::Arc;
     /// use azure_core::HttpClient;
-    /// use iot_hub::service::ServiceClient;
-    /// use iot_hub::service::resources::{Status, AuthenticationMechanism};
+    /// use azure_iot_hub::service::ServiceClient;
+    /// use azure_iot_hub::service::resources::{Status, AuthenticationMechanism};
     ///
     /// # let http_client = azure_core::new_http_client();
     /// # let connection_string = "HostName=cool-iot-hub.azure-devices.net;SharedAccessKeyName=iot_hubowner;SharedAccessKey=YSB2ZXJ5IHNlY3VyZSBrZXkgaXMgaW1wb3J0YW50Cg==";
@@ -610,8 +610,8 @@ impl ServiceClient {
     /// ```
     /// use std::sync::Arc;
     /// use azure_core::HttpClient;
-    /// use iot_hub::service::ServiceClient;
-    /// use iot_hub::service::resources::{Status, AuthenticationMechanism};
+    /// use azure_iot_hub::service::ServiceClient;
+    /// use azure_iot_hub::service::resources::{Status, AuthenticationMechanism};
     ///
     /// # let http_client = azure_core::new_http_client();
     /// # let connection_string = "HostName=cool-iot-hub.azure-devices.net;SharedAccessKeyName=iot_hubowner;SharedAccessKey=YSB2ZXJ5IHNlY3VyZSBrZXkgaXMgaW1wb3J0YW50Cg==";
@@ -634,7 +634,7 @@ impl ServiceClient {
     /// ```
     /// use std::sync::Arc;
     /// use azure_core::HttpClient;
-    /// use iot_hub::service::ServiceClient;
+    /// use azure_iot_hub::service::ServiceClient;
     ///
     /// # let http_client = azure_core::new_http_client();
     /// # let connection_string = "HostName=cool-iot-hub.azure-devices.net;SharedAccessKeyName=iot_hubowner;SharedAccessKey=YSB2ZXJ5IHNlY3VyZSBrZXkgaXMgaW1wb3J0YW50Cg==";
@@ -665,7 +665,7 @@ impl ServiceClient {
     /// ```
     /// use std::sync::Arc;
     /// use azure_core::HttpClient;
-    /// use iot_hub::service::ServiceClient;
+    /// use azure_iot_hub::service::ServiceClient;
     ///
     /// # let http_client = azure_core::new_http_client();
     /// # let connection_string = "HostName=cool-iot-hub.azure-devices.net;SharedAccessKeyName=iot_hubowner;SharedAccessKey=YSB2ZXJ5IHNlY3VyZSBrZXkgaXMgaW1wb3J0YW50Cg==";

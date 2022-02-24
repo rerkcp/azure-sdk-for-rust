@@ -2,24 +2,24 @@ use crate::headers::*;
 use crate::AddAsHeader;
 use http::request::Builder;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum IfSourceMatchCondition<'a> {
-    Match(&'a str),
-    NotMatch(&'a str),
+#[derive(Debug, Clone, PartialEq)]
+pub enum IfSourceMatchCondition {
+    Match(String),
+    NotMatch(String),
 }
 
-impl<'a> AddAsHeader for IfSourceMatchCondition<'a> {
+impl AddAsHeader for IfSourceMatchCondition {
     fn add_as_header(&self, builder: Builder) -> Builder {
         match self {
-            IfSourceMatchCondition::Match(etag) => builder.header(SOURCE_IF_MATCH, *etag),
-            IfSourceMatchCondition::NotMatch(etag) => builder.header(SOURCE_IF_NONE_MATCH, *etag),
+            IfSourceMatchCondition::Match(etag) => builder.header(SOURCE_IF_MATCH, etag),
+            IfSourceMatchCondition::NotMatch(etag) => builder.header(SOURCE_IF_NONE_MATCH, etag),
         }
     }
 
     fn add_as_header2(
         &self,
         request: &mut crate::Request,
-    ) -> Result<(), crate::errors::HTTPHeaderError> {
+    ) -> Result<(), crate::errors::HttpHeaderError> {
         let (header_name, header_value) = match self {
             IfSourceMatchCondition::Match(etag) => (SOURCE_IF_MATCH, etag),
             IfSourceMatchCondition::NotMatch(etag) => (SOURCE_IF_NONE_MATCH, etag),

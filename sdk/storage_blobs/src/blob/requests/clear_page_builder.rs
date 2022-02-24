@@ -1,5 +1,6 @@
 use crate::blob::responses::ClearPageResponse;
 use crate::prelude::*;
+use crate::BA512Range;
 use azure_core::headers::{
     add_mandatory_header, add_optional_header, add_optional_header_ref, BLOB_TYPE, PAGE_WRITE,
 };
@@ -11,8 +12,8 @@ pub struct ClearPageBuilder<'a> {
     ba512_range: BA512Range,
     sequence_number_condition: Option<SequenceNumberCondition>,
     if_modified_since_condition: Option<IfModifiedSinceCondition>,
-    if_match_condition: Option<IfMatchCondition<'a>>,
-    client_request_id: Option<ClientRequestId<'a>>,
+    if_match_condition: Option<IfMatchCondition>,
+    client_request_id: Option<ClientRequestId>,
     timeout: Option<Timeout>,
     lease_id: Option<&'a LeaseId>,
 }
@@ -34,8 +35,8 @@ impl<'a> ClearPageBuilder<'a> {
     setters! {
         sequence_number_condition: SequenceNumberCondition => Some(sequence_number_condition),
         if_modified_since_condition: IfModifiedSinceCondition => Some(if_modified_since_condition),
-        if_match_condition: IfMatchCondition<'a> => Some(if_match_condition),
-        client_request_id: ClientRequestId<'a> => Some(client_request_id),
+        if_match_condition: IfMatchCondition => Some(if_match_condition),
+        client_request_id: ClientRequestId => Some(client_request_id),
         timeout: Timeout => Some(timeout),
         lease_id: &'a LeaseId => Some(lease_id),
     }

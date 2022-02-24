@@ -4,7 +4,9 @@ on:
   workflow_dispatch:
 
 env:
-  RUSTFLAGS: -Dwarnings
+  # the goal is to remove warnings from the generated code
+  # https://github.com/Azure/azure-sdk-for-rust/issues/553
+  RUSTFLAGS: -Dwarnings -Aunused_attributes -Aunreachable-code -Aunused-assignments -Adead-code -Aclippy::new-without-default
   CARGO_INCREMENTAL: 0
 
 jobs:

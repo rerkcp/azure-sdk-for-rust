@@ -1,6 +1,10 @@
 // cargo run --example gen_svc --release
 // https://github.com/Azure/azure-rest-api-specs/blob/master/specification/batch/data-plane
-use autorust_codegen::{self, cargo_toml, config_parser::to_mod_name, get_svc_readmes, lib_rs, path, Config, PropertyName, SpecReadme};
+use autorust_codegen::{
+    self, cargo_toml,
+    config_parser::{to_mod_name, to_tag_name},
+    get_svc_readmes, lib_rs, path, Config, PropertyName, SpecReadme,
+};
 use std::{collections::HashSet, fs, path::PathBuf};
 
 const OUTPUT_FOLDER: &str = "../svc";
@@ -8,6 +12,7 @@ const OUTPUT_FOLDER: &str = "../svc";
 const ONLY_SERVICES: &[&str] = &[];
 
 const SKIP_SERVICES: &[&str] = &[
+    "datalake-store",          // query param "sources" not used
     "machinelearningservices", // need to box inner errors
     "hdinsight",               // job_id appears multiple times https://github.com/Azure/azure-sdk-for-rust/issues/503
     "videoanalyzer",           // no operations
@@ -17,21 +22,28 @@ const SKIP_SERVICES: &[&str] = &[
 const SKIP_SERVICE_TAGS: &[(&str, &str)] = &[
     ("agrifood", "package-2021-03-31-preview"), // duplicate params https://github.com/Azure/azure-sdk-for-rust/issues/501
     ("purview", "package-2021-05-01-preview"),  // need to box types
-    ("maps", "package-preview-2.0"),            // global responses https://github.com/Azure/azure-sdk-for-rust/issues/502
-    ("maps", "package-1.0-preview"),            // global responses https://github.com/Azure/azure-sdk-for-rust/issues/502
-    ("servicefabric", "6.2"),                   // invalid model TimeBasedBackupScheduleDescription
-    ("servicefabric", "6.3"),                   // invalid model TimeBasedBackupScheduleDescription
-    ("servicefabric", "6.4"),                   // invalid model TimeBasedBackupScheduleDescription
+    ("maps", "package-preview-2_0"),            // global responses https://github.com/Azure/azure-sdk-for-rust/issues/502
+    ("maps", "package-1_0-preview"),            // global responses https://github.com/Azure/azure-sdk-for-rust/issues/502
+    ("servicefabric", "6_2"),                   // invalid model TimeBasedBackupScheduleDescription
+    ("servicefabric", "6_3"),                   // invalid model TimeBasedBackupScheduleDescription
+    ("servicefabric", "6_4"),                   // invalid model TimeBasedBackupScheduleDescription
     ("storagedatalake", "package-2018-11"),     // "invalid value: string \"ErrorResponse\", expected length 3"
     ("storagedatalake", "package-2018-06-preview"),
     ("storagedatalake", "package-2019-10"),
 ];
 
-const INVALID_TYPE_WORKAROUND: &[(&str, &str, &str)] = &[(
-    "../../../azure-rest-api-specs/specification/applicationinsights/data-plane/Microsoft.Insights/preview/v1/AppInsights.json",
-    "table",
-    "rows",
-)];
+const INVALID_TYPE_WORKAROUND: &[(&str, &str, &str)] = &[
+    (
+        "../../../azure-rest-api-specs/specification/applicationinsights/data-plane/Microsoft.Insights/preview/v1/AppInsights.json",
+        "table",
+        "rows",
+    ),
+    (
+        "../../../azure-rest-api-specs/specification/operationalinsights/data-plane/Microsoft.OperationalInsights/stable/v1/OperationalInsights.json",
+        "table",
+        "rows",
+    ),
+];
 
 const FIX_CASE_PROPERTIES: &[&str] = &["BatchServiceClient", "BatchService"];
 
@@ -62,9 +74,14 @@ const BOX_PROPERTIES: &[(&str, &str, &str)] = &[
         "innerError",
     ),
     (
-         "../../../azure-rest-api-specs/specification/mixedreality/data-plane/Microsoft.MixedReality/preview/2021-01-01-preview/mr-arr.json",
+        "../../../azure-rest-api-specs/specification/mixedreality/data-plane/Microsoft.MixedReality/preview/2021-01-01-preview/mr-arr.json",
         "error",
         "innerError",
+    ),
+    (
+        "../../../azure-rest-api-specs/specification/mixedreality/data-plane/Microsoft.MixedReality/preview/0.3-preview.0/mr-aoa.json",
+        "InnerError",
+        "innererror",
     ),
     // confidentialledger
     (
@@ -75,6 +92,16 @@ const BOX_PROPERTIES: &[(&str, &str, &str)] = &[
     // operationalinsights
     (
         "../../../azure-rest-api-specs/specification/operationalinsights/data-plane/Microsoft.OperationalInsights/stable/v1/OperationalInsights.json",
+        "errorInfo",
+        "innererror",
+    ),
+    (
+        "../../../azure-rest-api-specs/specification/operationalinsights/data-plane/Microsoft.OperationalInsights/preview/2017-10-01/swagger.json",
+        "errorInfo",
+        "innererror",
+    ),
+    (
+        "../../../azure-rest-api-specs/specification/operationalinsights/data-plane/Microsoft.OperationalInsights/preview/2021-05-19_Preview/OperationalInsights.json",
         "errorInfo",
         "innererror",
     ),
@@ -106,6 +133,11 @@ const BOX_PROPERTIES: &[(&str, &str, &str)] = &[
         "InnerError",
         "innerError"
     ),
+    (
+        "../../../azure-rest-api-specs/specification/deviceupdate/data-plane/Microsoft.DeviceUpdate/preview/2021-06-01-preview/deviceupdate.json",
+        "InnerError",
+        "innerError"
+    ),
     // digitaltwins
     (
         "../../../azure-rest-api-specs/specification/digitaltwins/data-plane/Microsoft.DigitalTwins/preview/2020-05-31-preview/digitaltwins.json",
@@ -127,34 +159,33 @@ const BOX_PROPERTIES: &[(&str, &str, &str)] = &[
         "InnerError",
         "innererror"
     ),
+    (
+        "../../../azure-rest-api-specs/specification/digitaltwins/data-plane/Microsoft.DigitalTwins/preview/2021-06-30-preview/digitaltwins.json",
+        "InnerError",
+        "innererror"
+    ),
 ];
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    #[error(transparent)]
+    CodegenError(#[from] autorust_codegen::Error),
     #[error("file name was not utf-8")]
     FileNameNotUtf8Error {},
     #[error("IoError")]
     IoError { source: std::io::Error },
     #[error("PathError")]
     PathError { source: path::Error },
-    #[error("CodegenError")]
-    CodegenError { source: autorust_codegen::Error },
     #[error("CargoTomlError")]
     CargoTomlError { source: cargo_toml::Error },
     #[error("LibRsError")]
     LibRsError { source: lib_rs::Error },
-    #[error("GetSpecFoldersError")]
-    GetSpecFoldersError { source: autorust_codegen::Error },
 }
 
 fn main() -> Result<()> {
-    for (i, spec) in get_svc_readmes()
-        .map_err(|source| Error::GetSpecFoldersError { source })?
-        .iter()
-        .enumerate()
-    {
+    for (i, spec) in get_svc_readmes()?.iter().enumerate() {
         if !ONLY_SERVICES.is_empty() {
             if ONLY_SERVICES.contains(&spec.spec()) {
                 println!("{} {}", i + 1, spec.spec());
@@ -171,7 +202,7 @@ fn main() -> Result<()> {
 fn gen_crate(spec: &SpecReadme) -> Result<()> {
     let skip_service_tags: HashSet<&(&str, &str)> = SKIP_SERVICE_TAGS.iter().collect();
     let has_no_configs = spec
-        .configs()
+        .configs()?
         .iter()
         .all(|x| skip_service_tags.contains(&(spec.spec(), x.tag.as_str())));
     if has_no_configs {
@@ -213,17 +244,17 @@ fn gen_crate(spec: &SpecReadme) -> Result<()> {
         });
     }
 
-    for config in spec.configs() {
-        let tag = config.tag.as_str();
-        if skip_service_tags.contains(&(spec.spec(), tag)) {
+    for config in spec.configs()? {
+        let tag = to_tag_name(config.tag.as_str());
+        if skip_service_tags.contains(&(spec.spec(), tag.as_ref())) {
             // println!("  skipping {}", tag);
             continue;
         }
         println!("  {}", tag);
-        let mod_name = &to_mod_name(tag);
-        feature_mod_names.push((tag.to_string(), mod_name.clone()));
+        let mod_name = to_mod_name(&tag);
+        let mod_output_folder = path::join(&src_folder, &mod_name).map_err(|source| Error::PathError { source })?;
+        feature_mod_names.push((tag, mod_name));
         // println!("  {}", mod_name);
-        let mod_output_folder = path::join(&src_folder, mod_name).map_err(|source| Error::PathError { source })?;
         // println!("  {:?}", mod_output_folder);
         // for input_file in &config.input_files {
         //     println!("  {}", input_file);
@@ -245,8 +276,7 @@ fn gen_crate(spec: &SpecReadme) -> Result<()> {
             invalid_types: invalid_types.clone(),
             print_writing_file: false,
             ..Config::default()
-        })
-        .map_err(|source| Error::CodegenError { source })?;
+        })?;
     }
     if feature_mod_names.is_empty() {
         return Ok(());
