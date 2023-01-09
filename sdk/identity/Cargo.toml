@@ -27,7 +27,7 @@ async-timer = "1.0.0-beta.7"
 thiserror = "1.0"
 async-trait = "0.1"
 openssl = { version = "0.10",  optional=true }
-base64 = "0.13.0"
+base64 = "0.21.0"
 uuid = { version = "0.8",  features = ["v4"] }
 
 [dev-dependencies]
