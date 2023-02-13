@@ -30,7 +30,7 @@ azure_identity = { path = "../identity", version = "0.1" }
 [dev-dependencies]
 oauth2 = "4.0.0"
 azure_identity = { path = "../identity", version = "0.1" }
-mockito = "0.31"
+mockito = "0.32"
 async-trait = "0.1"
 
 [features]
